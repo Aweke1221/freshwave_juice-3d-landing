@@ -41,4 +41,24 @@ export const products: Product[] = [
       { name: 'Pomegranate', percentage: 25 },
     ],
   },
+  {
+    id: 'citrus-zest',
+    name: 'Citrus Zest',
+    flavor: 'orange',
+    description: 'Fresh oranges and grapefruits with a ginger kick',
+    price: 6.49,
+    color: '#ffa500',
+    glowColor: '#ff8c00',
+    nutrition: {
+      calories: 110,
+      sugar: 22,
+      vitaminC: 120,
+      energy: 90,
+    },
+    ingredients: [
+      { name: 'Orange', percentage: 60 },
+      { name: 'Grapefruit', percentage: 30 },
+      { name: 'Ginger', percentage: 10 },
+    ],
+  },
 ]
