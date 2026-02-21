@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Html, useGLTF } from '@react-three/drei'
-import { Mesh, Group } from 'three'
+import { OrbitControls, Html } from '@react-three/drei'
 import { motion, AnimatePresence } from 'framer-motion'
+import * as THREE from 'three'
 import { Product } from '@/types/product.types'
-import { ProductModal } from './ProductModal'
+import { ProductModal } from './ProductModal'  // Make sure this import is correct
 
 interface BottleModelProps {
   color: string
@@ -13,8 +13,8 @@ interface BottleModelProps {
 }
 
 const BottleModel: React.FC<BottleModelProps> = ({ color, glowColor, hovered }) => {
-  const meshRef = useRef<Group>(null)
-  const liquidRef = useRef<Mesh>(null)
+  const meshRef = useRef<THREE.Group>(null)
+  const liquidRef = useRef<THREE.Mesh>(null)
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -68,6 +68,12 @@ const BottleModel: React.FC<BottleModelProps> = ({ color, glowColor, hovered }) 
         <cylinderGeometry args={[0.4, 0.4, 0.2, 16]} />
         <meshStandardMaterial color="#333333" metalness={0.8} roughness={0.2} />
       </mesh>
+      
+      {/* Label */}
+      <mesh position={[0, 0, 0.85]}>
+        <torusGeometry args={[0.6, 0.05, 16, 32, Math.PI]} />
+        <meshStandardMaterial color={color} emissive={hovered ? glowColor : 'black'} emissiveIntensity={0.2} />
+      </mesh>
     </group>
   )
 }
@@ -88,35 +94,52 @@ export const ProductCard3D: React.FC<ProductCard3DProps> = ({ product, index }) 
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.2, duration: 0.8 }}
         viewport={{ once: true }}
-        className="relative h-[500px] w-full cursor-pointer"
+        className="relative h-[500px] w-full cursor-pointer group"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onClick={() => setModalOpen(true)}
       >
+        {/* 3D Canvas */}
         <Canvas
           camera={{ position: [0, 0, 5], fov: 45 }}
-          className="rounded-3xl"
+          className="rounded-3xl transition-transform duration-500 group-hover:scale-105"
         >
           <ambientLight intensity={0.5} />
-          <pointLight position={[10, 10, 10]} />
+          <pointLight position={[10, 10, 10]} intensity={1} />
           <pointLight position={[-10, -10, -10]} intensity={0.5} />
           <BottleModel 
             color={product.color} 
             glowColor={product.glowColor}
             hovered={hovered}
           />
-          <OrbitControls enableZoom={false} enablePan={false} />
+          <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} />
         </Canvas>
         
-        <div className="absolute bottom-6 left-0 right-0 text-center">
-          <h3 className="text-2xl font-bold text-white">{product.name}</h3>
-          <p className="text-neon-mango">${product.price}</p>
-        </div>
+        {/* Product Info Overlay */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 20 }}
+          transition={{ duration: 0.3 }}
+          className="absolute bottom-6 left-0 right-0 text-center pointer-events-none"
+        >
+          <h3 className="text-2xl font-bold text-white drop-shadow-lg">{product.name}</h3>
+          <p className="text-neon-mango text-lg drop-shadow-lg">${product.price}</p>
+        </motion.div>
+
+        {/* Hover Glow Effect */}
+        <motion.div
+          animate={{ opacity: hovered ? 0.2 : 0 }}
+          className="absolute inset-0 rounded-3xl bg-neon-mango blur-2xl -z-10"
+        />
       </motion.div>
 
+      {/* Modal */}
       <AnimatePresence>
         {modalOpen && (
-          <ProductModal product={product} onClose={() => setModalOpen(false)} />
+          <ProductModal 
+            product={product} 
+            onClose={() => setModalOpen(false)} 
+          />
         )}
       </AnimatePresence>
     </>
